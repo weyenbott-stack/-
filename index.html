@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Protection - Mobile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #25D366;
+            --secondary: #128C7E;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+        
+        /* Header dengan Dashboard Toggle */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            background: rgba(18, 140, 126, 0.1);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            position: relative;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(37, 211, 102, 0.5);
+        }
+        
+        /* Dashboard Toggle - 3 garis di pojok kanan */
+        .dashboard-toggle {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1000;
+        }
+        
+        .dashboard-toggle span {
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .dashboard-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+        
+        .dashboard-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .dashboard-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+        
+        /* Dashboard Panel - Muncul dari atas */
+        .dashboard-panel {
+            position: fixed;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            background: rgba(10, 15, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 20px 20px;
+            padding: 80px 20px 30px 20px;
+            z-index: 999;
+            transition: top 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(37, 211, 102, 0.2);
+        }
+        
+        .dashboard-panel.active {
+            top: 0;
+        }
+        
+        /* Status Grid dalam Dashboard */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        
+        .status-good { color: var(--primary); }
+        .status-warning { color: var(--warning); }
+        .status-danger { color: var(--danger); }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        /* Activity Log dalam Dashboard */
+        .activity-log {
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+        
+        .log-success { color: var(--primary); }
+        .log-warning { color: var(--warning); }
+        .log-error { color: var(--danger); }
+        
+        /* Main Content */
+        .main-content {
+            padding: 10px;
+        }
+        
+        .protection-panel {
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(37, 211, 102, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+        }
+        
+        .panel-title {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #ccc;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(37, 211, 102, 0.3);
+        }
+        
+        /* Select Group Horizontal */
+        .select-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .select-option input {
+            display: none;
+        }
+        
+        .select-option label {
+            display: block;
+            padding: 10px 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(37, 211, 102, 0.2);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .select-option input:checked + label {
+            background: rgba(37, 211, 102, 0.2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .setting-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .setting-value {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: bold;
+            margin: 6px 0;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1ebc5d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(37, 211, 102, 0.2);
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .feature-card p {
+            font-size: 0.75rem;
+            color: #ccc;
+            line-height: 1.3;
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(37, 211, 102, 0.3);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        .loading-text {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 360px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .select-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header dengan Dashboard Toggle -->
+    <div class="header">
+        <div class="logo">
+            <i class="fab fa-whatsapp"></i>
+            <h1>WA Protection</h1>
+        </div>
+        <div class="dashboard-toggle" id="dashboardToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+    
+    <!-- Dashboard Panel -->
+    <div class="dashboard-panel" id="dashboardPanel">
+        <div class="status-grid">
+            <div class="status-card">
+                <div>Block Risk</div>
+                <div class="status-value status-good" id="blockRisk">Low</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 25%"></div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div>Success Rate</div>
+                <div class="status-value status-good" id="successRate">98.2%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 98%"></div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div>Messages Today</div>
+                <div class="status-value" id="messagesToday">0/250</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="status-card">
+                <div>System Health</div>
+                <div class="status-value status-good" id="systemHealth">Excellent</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 95%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <h3 class="panel-title"><i class="fas fa-list"></i> Activity Log</h3>
+        <div class="activity-log" id="activityLog">
+            <div class="log-entry log-success">
+                <span>Sistem protection diinisialisasi</span>
+                <span>Just now</span>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="exportLogs()">
+                <i class="fas fa-download"></i> Export Logs
+            </button>
+            <button class="btn btn-secondary" onclick="clearLogs()">
+                <i class="fas fa-trash"></i> Clear Logs
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Protection Panel -->
+        <div class="protection-panel">
+            <h2 class="panel-title"><i class="fas fa-shield-alt"></i> Konfigurasi Perlindungan</h2>
+            
+            <div class="form-group">
+                <label for="phoneNumber">Nomor WhatsApp</label>
+                <input type="text" id="phoneNumber" class="input-field" placeholder="Contoh: 6281234567890">
+            </div>
+            
+            <div class="form-group">
+                <label>Mode Perlindungan</label>
+                <div class="select-group">
+                    <div class="select-option">
+                        <input type="radio" id="mode-safe" name="protectionMode" value="safe" checked>
+                        <label for="mode-safe">Safe</label>
+                    </div>
+                    <div class="select-option">
+                        <input type="radio" id="mode-balanced" name="protectionMode" value="balanced">
+                        <label for="mode-balanced">Balanced</label>
+                    </div>
+                    <div class="select-option">
+                        <input type="radio" id="mode-aggressive" name="protectionMode" value="aggressive">
+                        <label for="mode-aggressive">Aggressive</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Pengaturan Perlindungan</label>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>Rate Limit</label>
+                        <div class="setting-value" id="rateLimitValue">5/m</div>
+                        <input type="range" class="slider" id="rateLimit" min="1" max="20" value="5">
+                    </div>
+                    <div class="setting-item">
+                        <label>Random Delay</label>
+                        <div class="setting-value" id="delayValue">15-45s</div>
+                        <input type="range" class="slider" id="randomDelay" min="5" max="60" value="15">
+                    </div>
+                    <div class="setting-item">
+                        <label>Daily Limit</label>
+                        <div class="setting-value" id="dailyLimitValue">250/h</div>
+                        <input type="range" class="slider" id="dailyLimit" min="50" max="1000" value="250">
+                    </div>
+                    <div class="setting-item">
+                        <label>Warmup Period</label>
+                        <div class="setting-value" id="warmupValue">7 hari</div>
+                        <input type="range" class="slider" id="warmupPeriod" min="1" max="30" value="7">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" id="activateBtn">
+                    <i class="fas fa-play"></i> Aktifkan
+                </button>
+                <button class="btn btn-secondary" id="stopBtn">
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+            </div>
+        </div>
+        
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <h3>Rate Limiting</h3>
+                <p>Kontrol kecepatan pengiriman pesan</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-random"></i>
+                </div>
+                <h3>Random Delay</h3>
+                <p>Delay acak antar pesan</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <h3>Daily Limits</h3>
+                <p>Batas pengiriman harian</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <h3>Warmup System</h3>
+                <p>Aklimatisasi akun baru</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <p>WhatsApp Protection System &copy; 2024</p>
+        <p>Mobile Optimized Version</p>
+    </div>
+    
+    <!-- Loading Animation -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Mengaktifkan sistem perlindungan...</div>
+    </div>
+
+    <script>
+        // WhatsApp Protection System - Mobile Version
+        class WhatsAppProtection {
+            constructor() {
+                this.isActive = false;
+                this.sentToday = 0;
+                this.dailyLimit = 250;
+                this.rateLimit = 5;
+                this.randomDelayMin = 15;
+                this.randomDelayMax = 45;
+                this.protectionMode = 'safe';
+                
+                this.initializeEventListeners();
+                this.updateUI();
+                this.setupDashboard();
+            }
+            
+            setupDashboard() {
+                const toggle = document.getElementById('dashboardToggle');
+                const panel = document.getElementById('dashboardPanel');
+                
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                    panel.classList.toggle('active');
+                });
+                
+                // Close dashboard when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!toggle.contains(e.target) && !panel.contains(e.target)) {
+                        toggle.classList.remove('active');
+                        panel.classList.remove('active');
+                    }
+                });
+            }
+            
+            initializeEventListeners() {
+                // Slider events
+                document.getElementById('rateLimit').addEventListener('input', (e) => {
+                    this.rateLimit = parseInt(e.target.value);
+                    document.getElementById('rateLimitValue').textContent = `${this.rateLimit}/m`;
+                    this.addLog(`Rate limit: ${this.rateLimit}/m`, 'info');
+                });
+                
+                document.getElementById('randomDelay').addEventListener('input', (e) => {
+                    this.randomDelayMin = parseInt(e.target.value);
+                    this.randomDelayMax = this.randomDelayMin * 3;
+                    document.getElementById('delayValue').textContent = `${this.randomDelayMin}-${this.randomDelayMax}s`;
+                    this.addLog(`Delay: ${this.randomDelayMin}-${this.randomDelayMax}s`, 'info');
+                });
+                
+                document.getElementById('dailyLimit').addEventListener('input', (e) => {
+                    this.dailyLimit = parseInt(e.target.value);
+                    document.getElementById('dailyLimitValue').textContent = `${this.dailyLimit}/h`;
+                    document.getElementById('messagesToday').textContent = `0/${this.dailyLimit}`;
+                    this.addLog(`Daily limit: ${this.dailyLimit}`, 'info');
+                });
+                
+                document.getElementById('warmupPeriod').addEventListener('input', (e) => {
+                    const days = parseInt(e.target.value);
+                    document.getElementById('warmupValue').textContent = `${days} hari`;
+                    this.addLog(`Warmup: ${days} days`, 'info');
+                });
+                
+                // Radio buttons
+                document.querySelectorAll('input[name="protectionMode"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.protectionMode = e.target.value;
+                        this.applyProtectionMode();
+                        this.addLog(`Mode: ${e.target.value}`, 'info');
+                    });
+                });
+                
+                // Buttons
+                document.getElementById('activateBtn').addEventListener('click', () => {
+                    this.activateProtection();
+                });
+                
+                document.getElementById('stopBtn').addEventListener('click', () => {
+                    this.stopProtection();
+                });
+            }
+            
+            applyProtectionMode() {
+                switch(this.protectionMode) {
+                    case 'safe':
+                        this.rateLimit = 3;
+                        this.dailyLimit = 150;
+                        this.randomDelayMin = 20;
+                        break;
+                    case 'balanced':
+                        this.rateLimit = 5;
+                        this.dailyLimit = 250;
+                        this.randomDelayMin = 15;
+                        break;
+                    case 'aggressive':
+                        this.rateLimit = 8;
+                        this.dailyLimit = 400;
+                        this.randomDelayMin = 10;
+                        break;
+                }
+                
+                this.randomDelayMax = this.randomDelayMin * 3;
+                
+                // Update sliders
+                document.getElementById('rateLimit').value = this.rateLimit;
+                document.getElementById('dailyLimit').value = this.dailyLimit;
+                document.getElementById('randomDelay').value = this.randomDelayMin;
+                
+                // Update display
+                document.getElementById('rateLimitValue').textContent = `${this.rateLimit}/m`;
+                document.getElementById('dailyLimitValue').textContent = `${this.dailyLimit}/h`;
+                document.getElementById('delayValue').textContent = `${this.randomDelayMin}-${this.randomDelayMax}s`;
+                
+                this.updateUI();
+            }
+            
+            async activateProtection() {
+                const phoneNumber = document.getElementById('phoneNumber').value;
+                
+                if (!phoneNumber) {
+                    alert('Masukkan nomor WhatsApp!');
+                    return;
+                }
+                
+                if (!this.validatePhoneNumber(phoneNumber)) {
+                    alert('Format nomor tidak valid!');
+                    return;
+                }
+                
+                this.showLoading('Mengaktifkan protection...');
+                
+                await this.delay(1500);
+                
+                this.isActive = true;
+                this.sentToday = 0;
+                
+                this.addLog(`Protection aktif: ${phoneNumber}`, 'success');
+                this.addLog(`Mode: ${this.protectionMode}`, 'info');
+                
+                this.startMonitoring();
+                
+                this.hideLoading();
+                this.updateUI();
+            }
+            
+            stopProtection() {
+                this.isActive = false;
+                this.addLog('Protection dihentikan', 'warning');
+                this.updateUI();
+            }
+            
+            startMonitoring() {
+                if (this.isActive) {
+                    setInterval(() => {
+                        if (this.isActive && this.sentToday < this.dailyLimit) {
+                            if (Math.random() > 0.3) {
+                                this.simulateMessageSending();
+                            }
+                            this.updateUI();
+                        }
+                    }, 5000);
+                }
+            }
+            
+            simulateMessageSending() {
+                if (this.sentToday >= this.dailyLimit) return;
+                
+                this.sentToday++;
+                
+                const success = Math.random() > 0.05;
+                
+                if (success) {
+                    this.addLog(`Pesan ke +62xxx${Math.floor(Math.random()*1000)} berhasil`, 'success');
+                } else {
+                    this.addLog(`Pesan gagal - rate limited`, 'warning');
+                }
+                
+                this.updateRiskLevel();
+            }
+            
+            updateRiskLevel() {
+                const usagePercent = (this.sentToday / this.dailyLimit) * 100;
+                let riskLevel = 'Low';
+                let riskColor = 'status-good';
+                let riskPercent = 25;
+                
+                if (usagePercent > 80) {
+                    riskLevel = 'High';
+                    riskColor = 'status-danger';
+                    riskPercent = 85;
+                } else if (usagePercent > 50) {
+                    riskLevel = 'Medium';
+                    riskColor = 'status-warning';
+                    riskPercent = 60;
+                }
+                
+                document.getElementById('blockRisk').textContent = riskLevel;
+                document.getElementById('blockRisk').className = `status-value ${riskColor}`;
+                document.querySelector('#blockRisk + .progress-bar .progress-fill').style.width = `${riskPercent}%`;
+            }
+            
+            addLog(message, type = 'info') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                
+                logEntry.innerHTML = `
+                    <span>${message}</span>
+                    <span>${timeString}</span>
+                `;
+                
+                const activityLog = document.getElementById('activityLog');
+                activityLog.prepend(logEntry);
+                
+                if (activityLog.children.length > 8) {
+                    activityLog.removeChild(activityLog.lastChild);
+                }
+            }
+            
+            updateUI() {
+                document.getElementById('messagesToday').textContent = `${this.sentToday}/${this.dailyLimit}`;
+                document.querySelector('#messagesToday + .progress-bar .progress-fill').style.width = `${(this.sentToday / this.dailyLimit) * 100}%`;
+                
+                document.getElementById('activateBtn').disabled = this.isActive;
+                document.getElementById('stopBtn').disabled = !this.isActive;
+                
+                if (this.isActive) {
+                    document.getElementById('activateBtn').innerHTML = '<i class="fas fa-check"></i> Active';
+                    document.getElementById('activateBtn').style.background = '#198754';
+                } else {
+                    document.getElementById('activateBtn').innerHTML = '<i class="fas fa-play"></i> Aktifkan';
+                    document.getElementById('activateBtn').style.background = '';
+                }
+            }
+            
+            validatePhoneNumber(phone) {
+                return phone.length >= 10 && /^[0-9]+$/.test(phone);
+            }
+            
+            showLoading(text) {
+                document.getElementById('loadingText').textContent = text;
+                document.getElementById('loading').classList.add('active');
+            }
+            
+            hideLoading() {
+                document.getElementById('loading').classList.remove('active');
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // Utility functions for dashboard
+        function exportLogs() {
+            alert('Logs berhasil diexport!');
+        }
+        
+        function clearLogs() {
+            if (confirm('Hapus semua logs?')) {
+                document.getElementById('activityLog').innerHTML = '';
+                const protectionSystem = window.protectionSystem;
+                protectionSystem.addLog('Logs cleared', 'info');
+            }
+        }
+        
+        // Initialize the protection system
+        document.addEventListener('DOMContentLoaded', () => {
+            window.protectionSystem = new WhatsAppProtection();
+            protectionSystem.addLog('System ready', 'success');
+        });
+    </script>
+</body>
+</html>
